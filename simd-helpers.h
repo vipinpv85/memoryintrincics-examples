@@ -27,6 +27,47 @@ static void counter_ip(uint64_t *counters, uint64_t *t2) __attribute__((always_i
 
 static inline int naiveChecksum(const char * const target, size_t targetLength) __attribute__((always_inline));
 static inline int avxChecksumV1(const char * const target, size_t targetLength) __attribute__((always_inline)); 
+static inline int avxUdpChecksumV1(const char * const target, size_t targetLength) __attribute__((always_inline)); 
+
+__attribute__((always_inline)) inline int avxUdpChecksumV1(const char * const target, size_t targetLength)
+{
+        const __m256i zeroVec = _mm256_setzero_si256();
+        unsigned int checksum = 0;
+        size_t offset = 0;
+        uint16_t *buff = NULL;
+
+        if(targetLength >= 32) {
+                for(; offset <= targetLength - 32; offset += 32) {
+                        __m256i vec = _mm256_loadu_si256((__m256i const *)(target + offset));
+                        __m256i lVec = _mm256_unpacklo_epi16(vec, zeroVec);
+                        __m256i hVec = _mm256_unpackhi_epi16(vec, zeroVec);
+                        __m256i sum = _mm256_add_epi32(lVec, hVec);
+                        sum = _mm256_hadd_epi32(sum, sum);
+                        sum = _mm256_hadd_epi32(sum, sum);
+                        sum = _mm256_hadd_epi32(sum, sum);
+                        checksum += _mm256_extract_epi16(sum, 0) +
+                                _mm256_extract_epi16(sum, 15);
+                }
+        }
+
+        if (targetLength - offset >= 2) {
+                for(;(targetLength -offset) >= 2; offset+=2)
+                {
+                        checksum +=  (*(uint16_t *) ((uint8_t *) target + offset) );
+                }
+                offset -= 2;
+        }
+
+        if (targetLength - offset)  {
+                checksum += *((uint8_t *) target + offset);
+        }
+
+        checksum = ((checksum & 0xffff0000) >> 16) + (checksum & 0xffff);
+        checksum = ((checksum & 0xffff0000) >> 16) + (checksum & 0xffff);
+
+        return checksum;
+}
+
 
 __attribute__((always_inline)) static inline int naiveChecksum(const char * const target, size_t targetLength) 
 {
