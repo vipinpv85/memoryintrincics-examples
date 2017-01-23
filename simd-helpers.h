@@ -29,6 +29,63 @@ static inline int naiveChecksum(const char * const target, size_t targetLength) 
 static inline int avxChecksumV1(const char * const target, size_t targetLength) __attribute__((always_inline)); 
 static inline int avxUdpChecksumV1(const char * const target, size_t targetLength) __attribute__((always_inline));
 static inline int avxUdpChecksumV2(const char * const target, size_t targetLength) __attribute__((always_inline));
+static inline int avxmmxUdpChecksumV1(const char * const target, size_t targetLength) __attribute__((always_inline));
+
+__attribute__((always_inline)) inline int avxmmxChecksumV1(const char * const target, size_t targetLength)
+{
+        uint64_t checksum = 0;
+        size_t offset = 0;
+        __m256i vec, lVec, hVec, sum, zero = _mm256_setzero_si256();
+        __m128i vec1, lVec1, hVec1, sum1, zero1 = _mm_setzero_si128 ();
+
+        if(targetLength >= 32) {
+                for(; offset <= targetLength - 32; offset += 32)
+                {
+                        vec = _mm256_loadu_si256((__m256i const *)(target + offset));
+                        //vec = (__m256i) {*(const uint64_t *)(target + 0 + offset), *(const uint64_t *)(target + 8 + offset), *(const uint64_t *)(target + 16 + offset), *(const uint64_t *)(target + 24 + offset)};
+                        sum = _mm256_add_epi32(_mm256_unpacklo_epi16(vec, zero),
+                                               _mm256_unpackhi_epi16(vec, zero));
+
+                        sum = _mm256_hadd_epi32(sum, sum);
+                        sum = _mm256_hadd_epi32(sum, sum);
+
+                        checksum += (uint64_t) _mm256_extract_epi32(sum, 0) + (uint64_t) _mm256_extract_epi32(sum, 7);
+                }
+                checksum = ((checksum & 0xffffffff00000000) >> 32) + (checksum & 0xffffffff);
+        }
+
+        if ((targetLength - offset) >= 16) {
+                vec1 = _mm_loadu_si128 ((__m128i const*) (target + offset));
+                sum1 = _mm_add_epi32 (_mm_unpacklo_epi16(vec1, zero1), _mm_unpackhi_epi16(vec1, zero1));
+
+                sum1 = _mm_hadd_epi32(sum1, sum1);
+                sum1 = _mm_hadd_epi32(sum1, sum1);
+
+                //checksum += (uint64_t) _mm_extract_epi32(sum1, 0) + (uint64_t) _mm_extract_epi32(sum1, 3);
+                checksum += (uint64_t) _mm_extract_epi32(sum1, 0);
+                checksum = ((checksum & 0xffffffff00000000) >> 32) + (checksum & 0xffffffff);
+
+                offset += 16;
+        }
+
+        if ((targetLength - offset) >= 2) {
+                for(;(targetLength -offset) >= 2; offset+=2)
+                {
+                        checksum +=  (*(uint16_t *) ((uint8_t *) target + offset) );
+                }
+                offset -= 2;
+        }
+
+        if ((targetLength - offset) == 1) {
+                checksum += *((uint8_t *) target + offset);
+        }
+
+        checksum = ((checksum & 0xffff0000) >> 16) + (checksum & 0xffff);
+        checksum = ((checksum & 0xffff0000) >> 16) + (checksum & 0xffff);
+
+        return checksum;
+}
+
 
 __attribute__((always_inline)) inline int avxUdpChecksumV2(const char * const target, size_t targetLength)
 {
