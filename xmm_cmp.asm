@@ -1,7 +1,5 @@
-/* 
-  - windows visual studio MASM compiled code 
-  - extern "C" char* mystrchr_asm(const char* string, const unsigned char ch);
- */
+;  - windows visual studio MASM compiled code 
+;  - extern "C" char* mystrchr_asm(const char* string, const unsigned char ch);
 
 .model flat,c
 
