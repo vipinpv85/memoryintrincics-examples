@@ -1,3 +1,6 @@
+; nasm -felf64 -F stabs lookupmatch.asm
+; gcc mytest.c -ggdb -m 32 -o mytest
+
 global  myasm_v1
 
 section .text
