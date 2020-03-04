@@ -19,7 +19,3 @@ Sample use cases and exploration on use of SIMD on x86 (sse, ssse, avx). Most of
 | -- | -- |
 | `perf` | perf stat -e task-clock,LLC-loads,LLC-load-misses,branches,branch-misses,faults,migrations,alignment-faults,uops_issued.stall_cycles,uops_executed.stall_cycles,uops_retired.stall_cycles,bus-cycles,L1-dcache-loads,L1-dcache-load-misses,L1-dcache-stores,lsd.uops,uops_issued.any,dTLB-loads,dTLB-load-misses,dTLB-prefetch-misses,bus-cycles,cpu-cycles,ref-cycles,cycles:u,cycles:k,instructions,inst_retired.any,context-switches,cpu-migrations |
 | `objdump` | objdump -S --start-address=`address of binary` `binary file` |
-
-
-
-Note: to make use of simd, once can use asm, intrinics or compiler optimzation. We are building with no optimization and checked with objdump -d a.out
