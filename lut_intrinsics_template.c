@@ -15,6 +15,8 @@ __attribute__((noinline)) int mysse_v10(const adk_ipv6_dp_uli_flow_cache_entry_t
         if (count == 0)
           return -1;
 
+        /* lookup is done for ipv6 dst, dst port and flags from incoming pkt */
+        
         pkt_dstip = _mm_loadu_si128((__m128i const*) ((unsigned char *)pkt + 8));
         pkt_dstport_sockid = (*((uint16_t *)((unsigned char *)pkt + 42)) << 0 | *((uint32_t *)(unsigned char *)pkt + 128) << 16) & 0xffffffffff;
 
