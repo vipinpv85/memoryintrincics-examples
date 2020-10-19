@@ -15,7 +15,7 @@
 static uint32_t numThreads = 8;
 static uint32_t numMemGb = 16; /* in GB*/
 static int quit = 0;
-static pthread_t thread[1024];
+static pthread_t thread[8];
 static long long unsigned tickCount[1024][7] __attribute__ ((aligned (16)));
 static sigset_t signal_mask;
 
@@ -331,7 +331,96 @@ static void __attribute__ ((noinline)) v7_CopyCompare(const int offsetIndex)
 	assert((_mm256_testz_si256(res1, res2) & _mm256_testz_si256(res3, res4)) == 1);
 }
 
+static void __attribute__ ((noinline)) v8_CopyCompare(const int offsetIndex)
+{
+        unsigned long long int i = 0, j = 0;
+        __m256i a01, a02, a03, a04, b01, b02, b03, b04;
+        __m256i a11, a12, a13, a14, b11, b12, b13, b14;
+        __m256i res01, res02, res03, res04, res11, res12, res13,  res14;
 
+        const unsigned long long int pseudoIndex = offsetIndex * (1UL << 31);
+
+        const uint64_t vsrc[4]  __attribute__ ((aligned (16)))= {
+                (const uint64_t)((const char *)src + pseudoIndex +  0),
+                (const uint64_t)((const char *)src + pseudoIndex + 32),
+                (const uint64_t)((const char *)src + pseudoIndex + 64),
+                (const uint64_t)((const char *)src + pseudoIndex + 96) };
+        const uint64_t vsrc1[4]  __attribute__ ((aligned (16)))= {
+                (const uint64_t)((const char *)src + pseudoIndex + 128),
+                (const uint64_t)((const char *)src + pseudoIndex + 160),
+                (const uint64_t)((const char *)src + pseudoIndex + 192),
+                (const uint64_t)((const char *)src + pseudoIndex + 224) };
+
+        const uint64_t vdst[4]  __attribute__ ((aligned (16)))= {
+                (const uint64_t)((const char *)dst + pseudoIndex +  0),
+                (const uint64_t)((const char *)dst + pseudoIndex + 32),
+                (const uint64_t)((const char *)dst + pseudoIndex + 64),
+                (const uint64_t)((const char *)dst + pseudoIndex + 96) };
+        const uint64_t vdst1[4]  __attribute__ ((aligned (16)))= {
+                (const uint64_t)((const char *)dst + pseudoIndex + 128),
+                (const uint64_t)((const char *)dst + pseudoIndex + 160),
+                (const uint64_t)((const char *)dst + pseudoIndex + 192),
+                (const uint64_t)((const char *)dst + pseudoIndex + 224) };
+
+        __m256i vector_vsrc = _mm256_lddqu_si256((__m256i const *)vsrc);
+        __m256i vector_vsrc1 = _mm256_lddqu_si256((__m256i const *)vsrc1);
+        __m256i vector_vdst = _mm256_lddqu_si256((__m256i const *)vdst);
+        __m256i vector_vdst1 = _mm256_lddqu_si256((__m256i const *)vdst1);
+        __m256i vector_offset = _mm256_set_epi64x(128, 128, 128, 128);
+
+        const uint64_t *sptr, *sptr1, *dptr, *dptr1;
+        sptr = (const uint64_t *)&vector_vsrc;
+        sptr1 = (const uint64_t *)&vector_vsrc1;
+        dptr = (const uint64_t *)&vector_vdst;
+        dptr1 = (const uint64_t *)&vector_vdst1;
+        for (i = 0; i < (1UL << 31);  i += 256) {
+                a01 = _mm256_lddqu_si256 ((__m256i const * )sptr[0]);
+                a02 = _mm256_lddqu_si256 ((__m256i const * )sptr[1]);
+                a03 = _mm256_lddqu_si256 ((__m256i const * )sptr[2]);
+                a04 = _mm256_lddqu_si256 ((__m256i const * )sptr[3]);
+                a11 = _mm256_lddqu_si256 ((__m256i const * )sptr1[0]);
+                a12 = _mm256_lddqu_si256 ((__m256i const * )sptr1[1]);
+                a13 = _mm256_lddqu_si256 ((__m256i const * )sptr1[2]);
+                a14 = _mm256_lddqu_si256 ((__m256i const * )sptr1[3]);
+                _mm256_storeu_si256((__m256i *)dptr[0], a01);
+                _mm256_storeu_si256((__m256i *)dptr[1], a02);
+                _mm256_storeu_si256((__m256i *)dptr[2], a03);
+                _mm256_storeu_si256((__m256i *)dptr[3], a04);
+                _mm256_storeu_si256((__m256i *)dptr1[0], a11);
+                _mm256_storeu_si256((__m256i *)dptr1[1], a12);
+                _mm256_storeu_si256((__m256i *)dptr1[2], a13);
+                _mm256_storeu_si256((__m256i *)dptr1[3], a14);
+                b01 = _mm256_lddqu_si256 ((__m256i const * )dptr[0]);
+                b02 = _mm256_lddqu_si256 ((__m256i const * )dptr[1]);
+                b03 = _mm256_lddqu_si256 ((__m256i const * )dptr[2]);
+                b04 = _mm256_lddqu_si256 ((__m256i const * )dptr[3]);
+                b11 = _mm256_lddqu_si256 ((__m256i const * )dptr1[0]);
+                b12 = _mm256_lddqu_si256 ((__m256i const * )dptr1[1]);
+                b13 = _mm256_lddqu_si256 ((__m256i const * )dptr1[2]);
+                b14 = _mm256_lddqu_si256 ((__m256i const * )dptr1[3]);
+
+                vector_vsrc = _mm256_add_epi64 (vector_vsrc, vector_offset);
+                vector_vsrc1 = _mm256_add_epi64 (vector_vsrc, vector_offset);
+                vector_vdst = _mm256_add_epi64 (vector_vdst, vector_offset);
+                vector_vdst1 = _mm256_add_epi64 (vector_vdst, vector_offset);
+                sptr = (const uint64_t *)&vector_vsrc;
+                sptr1 = (const uint64_t *)&vector_vsrc1;
+                dptr = (const uint64_t *)&vector_vdst;
+                dptr1 = (const uint64_t *)&vector_vdst1;
+
+                const __m256i res01 = _mm256_xor_si256(a01,b01);
+                const __m256i res02 = _mm256_xor_si256(a02,b02);
+                const __m256i res03 = _mm256_xor_si256(a03,b03);
+                const __m256i res04 = _mm256_xor_si256(a04,b04);
+                const __m256i res11 = _mm256_xor_si256(a11,b11);
+                const __m256i res12 = _mm256_xor_si256(a12,b12);
+                const __m256i res13 = _mm256_xor_si256(a13,b13);
+                const __m256i res14 = _mm256_xor_si256(a14,b14);
+
+                assert((_mm256_testz_si256(res01, res02) & _mm256_testz_si256(res03, res04)) == 1);
+                assert((_mm256_testz_si256(res11, res12) & _mm256_testz_si256(res13, res14)) == 1);
+        }
+}
 
 static void *do_CopyCompare(void *userData)
 {
@@ -434,7 +523,19 @@ static void *do_CopyCompare(void *userData)
 		__asm__ __volatile__("rdtsc" : "=a"(tickl), "=d"(tickh));
 	        stop = ((unsigned long long)tickh << 32)|tickl;
 		tickCount[threadIndex][6] = stop - start;
-
+		
+		/* v8 */
+		if (__sync_fetch_and_and(&quit, 2) == 2) {
+			fprintf(stdout," Sginal Exit do_CopyCompare!\n");
+			pthread_exit(NULL);
+			return NULL;
+		}
+		__asm__ __volatile__("rdtsc" : "=a"(tickl), "=d"(tickh));
+	        start = ((unsigned long long)tickh << 32)|tickl;
+		v8_CopyCompare(threadIndex);
+		__asm__ __volatile__("rdtsc" : "=a"(tickl), "=d"(tickh));
+	        stop = ((unsigned long long)tickh << 32)|tickl;
+		tickCount[threadIndex][7] = stop - start;
 	} while(0);
 	fprintf(stdout," Exit do_CopyCompare %d!\n", threadIndex);
 }
@@ -538,8 +639,8 @@ int main(int argc, char **argv)
 	int i = 0;
 	long long unsigned total[7] = {0, 0, 0, 0, 0, 0, 0};
         for (; i < numThreads; i++) {
-                printf("\033[%d;1H Thread-%03d: v1 (%10llu), v2 (%10llu), v3 (%10llu), v4 (%10llu), v5 (%10llu), v6(%10llu), v7(%10llu)",
-                        i + 2, i, tickCount[i][0], tickCount[i][1], tickCount[i][2], tickCount[i][3], tickCount[i][4], tickCount[i][5], tickCount[i][6]);
+                printf("\033[%d;1H Thread-%03d: v1 (%10llu), v2 (%10llu), v3 (%10llu), v4 (%10llu), v5 (%10llu), v6(%10llu), v7(%10llu), v8(%10llu)",
+                        i + 2, i, tickCount[i][0], tickCount[i][1], tickCount[i][2], tickCount[i][3], tickCount[i][4], tickCount[i][5], tickCount[i][6], tickCount[i][7]);
 		total[0] += tickCount[i][0];
 		total[1] += tickCount[i][1];
 		total[2] += tickCount[i][2];
@@ -547,11 +648,12 @@ int main(int argc, char **argv)
 		total[4] += tickCount[i][4];
 		total[5] += tickCount[i][5];
 		total[6] += tickCount[i][6];
+		total[7] += tickCount[i][7];
 	}
         printf("\033[%d;1H --- with Pstate ticks can be unreliable ---", i + 2);
-	printf("\033[%d;1H Total: %llu, %llu, %llu, %llu, %llu, %llu, %llu",
-		i + 3, total[0], total[1], total[2], total[3], total[4], total[5], total[6]);
-        printf("\033[%d;1H speedup %%: %f, %f, %f, %f, %f, %f, %f",
+	printf("\033[%d;1H Total: %llu, %llu, %llu, %llu, %llu, %llu, %llu, %llu",
+		i + 3, total[0], total[1], total[2], total[3], total[4], total[5], total[6], total[7]);
+        printf("\033[%d;1H speedup %%: %f, %f, %f, %f, %f, %f, %f, %f",
 		i + 4,
 		((float)(total[0] - 0) * 100)/ (float)total[0],
 		((float)(total[0] - total[1]) * 100)/ (float)total[1],
@@ -559,8 +661,8 @@ int main(int argc, char **argv)
 		((float)(total[0] - total[3]) * 100)/ (float)total[3],
 		((float)(total[0] - total[4]) * 100)/ (float)total[4],
 		((float)(total[0] - total[5]) * 100)/ (float)total[5],
-		((float)(total[0] - total[6]) * 100)/ (float)total[6]
-		);
+		((float)(total[0] - total[6]) * 100)/ (float)total[6],
+		((float)(total[0] - total[7]) * 100)/ (float)total[7] );
         printf("\033[%d;1H ---------------------------------", i + 5);
 	
         printf("\033[%d;1H", i + 5);	
