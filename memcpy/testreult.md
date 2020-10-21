@@ -1,3 +1,21 @@
+# Build
+
+```
+`make` | default mode is release
+`make BUILD=debug` | build with debug flags to run with gdb
+`make BUILD=fill` | build in release mode with logic to fill 16GB src with random values
+`make swap` | builds swap partition with 32GB
+`make clean` | cleans up the enviroment
+`make run` | execute the ELF
+```
+ 
+ # dependancy
+ 1. libnuma
+ 2. avx256
+ 3. pthread
+ 
+ ## RESULT
+ 
  ```
  ---- Summary in ticks -----
  Thread-000: v1 (6740374419), v2 (2650541238), v3 (2750199615), v4 (2519510099), v5 (        21), v6(1547337919), v7(1572525278), v9(1901720804)
