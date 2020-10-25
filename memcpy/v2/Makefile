@@ -59,7 +59,7 @@ run:
 	ulimit -a
 	@echo "------------------------------"
 	sync;echo 3 > /proc/sys/vm/drop_caches ; free -m
-	taskset -c 1-9 ./build/test
+	./build/test
 
 #%.c:
 #	echo "file - " $@
