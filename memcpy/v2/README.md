@@ -1,7 +1,8 @@
 # Build
 
 ```
-`make` | default mode is release
+`make` | default 
+`make BUILD=release` | highest performance.
 `make BUILD=debug` | build with debug flags to run with gdb
 `make BUILD=fill` | build in release mode with logic to fill 16GB src with random values
 `make swap` | builds swap partition with 32GB
