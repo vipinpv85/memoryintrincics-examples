@@ -4,12 +4,14 @@
 BUILD := release 
 
 CC = gcc
-
 cflags.common := -std=gnu11
+CC = g++
+cflags.common := 
+
 cflags.debug := -I. -ggdb -O0 -m64  -fopt-info-vec-missed -ftree-vectorizer-verbose=2
 cflags.release =-I. -Ofast -m64 -march=native 
 cflags.fill =-I. -DFILLRNDM -Ofast -m64 -march=native 
-CFLAGS := ${cflags.${BUILD}} ${cflags.common}
+CFLAGS := -Wall ${cflags.${BUILD}} ${cflags.common}
 
 CFLAGS += -fno-plt -free
 CFLAGS += -lnuma -pthread -mavx2
@@ -21,8 +23,8 @@ CFLAGS += -funroll-loops
 #CFLAGS += -mfma -ffast-math
 CFLAGS += -mprefetchwt1
 #CFLAGS += -fPIC
-SRC = main.c
-OBJ = main.o
+
+SRC = runlogic.c main.c
 
 
 .PHONY: all
