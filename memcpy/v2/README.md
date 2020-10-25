@@ -1,4 +1,4 @@
-# Build
+# Commands
 
 ```
 `make` | default 
@@ -9,12 +9,17 @@
 `make clean` | cleans up the enviroment
 `make run` | execute the ELF
 ```
- 
- # dependancy
- 1. libnuma
- 2. avx256
- 3. pthread
- 
+
+## dependancy
+
+1. libnuma
+2. avx256
+3. pthread
+
+## build with gcc
+
+1. Comment line 8 & 9
+
  # RESULT
  
  ```
