@@ -16,6 +16,21 @@
  
  # RESULT
  
+ ## time (v1 for 10 iteration)
+ ```
+real    0m10.721s
+user    0m58.719s
+sys     0m17.931s
+ ```
+ 
+ ## time (v3 for 10 iteration)
+ ```
+real    0m5.538s
+user    0m31.511s
+sys     0m7.450s
+ ```
+
+
  ## GCC compiler (`Makefile`)
  ```
   ---- Summary in ticks -----
