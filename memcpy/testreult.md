@@ -30,6 +30,79 @@ user    0m31.511s
 sys     0m7.450s
  ```
 
+## perf stat for v1
+```
+ Performance counter stats for 'taskset -c 1-9 ./build/test':
+
+      76760.897882      task-clock (msec)         #    7.237 CPUs utilized
+    1,75,28,65,361      LLC-loads                 #   22.835 M/sec                    (27.20%)
+      89,03,52,160      LLC-load-misses           #   50.79% of all LL-cache hits     (22.68%)
+    8,74,10,35,503      branches                  #  113.874 M/sec                    (22.72%)
+       1,37,65,991      branch-misses             #    0.16% of all branches          (22.76%)
+       1,27,21,596      faults                    #    0.166 M/sec
+                 1      migrations                #    0.000 K/sec
+                 0      alignment-faults          #    0.000 K/sec
+ 1,82,32,15,01,400      uops_issued.stall_cycles  # 2375.187 M/sec                    (18.25%)
+ 1,56,51,93,43,723      uops_executed.stall_cycles # 2039.050 M/sec                    (18.26%)
+ 1,77,05,72,38,977      uops_retired.stall_cycles # 2306.607 M/sec                    (18.25%)
+    7,59,05,15,521      bus-cycles                #   98.885 M/sec                    (18.24%)
+   30,60,82,39,924      L1-dcache-loads           #  398.748 M/sec                    (18.24%)
+    3,36,14,97,410      L1-dcache-load-misses     #   10.98% of all L1-dcache hits    (18.23%)
+   11,26,29,44,204      L1-dcache-stores          #  146.728 M/sec                    (18.21%)
+   47,04,84,40,615      lsd.uops                  #  612.922 M/sec                    (18.19%)
+   90,70,56,20,688      uops_issued.any           # 1181.664 M/sec                    (18.17%)
+   30,55,14,35,800      dTLB-loads                #  398.008 M/sec                    (18.16%)
+      20,04,68,186      dTLB-load-misses          #    0.66% of all dTLB cache hits   (18.15%)
+   <not supported>      dTLB-prefetch-misses
+    7,58,89,60,054      bus-cycles                #   98.865 M/sec                    (18.15%)
+ 2,08,02,86,70,603      cpu-cycles                #    2.710 GHz                      (18.14%)
+ 1,66,92,19,95,131      ref-cycles                # 2174.571 M/sec                    (22.68%)
+ 1,66,02,18,05,464      cycles:u                  #    2.163 GHz                      (22.67%)
+   42,05,72,35,389      cycles:k                  #    0.548 GHz                      (22.67%)
+   75,53,26,67,402      instructions              #    0.36  insn per cycle           (27.20%)
+   75,72,12,84,348      inst_retired.any          #  986.456 M/sec                    (27.20%)
+               111      context-switches          #    0.001 K/sec
+                 1      cpu-migrations            #    0.000 K/sec
+
+      10.606997706 seconds time elapsed
+```
+
+## perf stat for v3
+```
+ Performance counter stats for 'taskset -c 1-9 ./build/test':
+
+      40858.033069      task-clock (msec)         #    7.135 CPUs utilized
+      36,91,16,796      LLC-loads                 #    9.034 M/sec                    (27.02%)
+      17,28,72,384      LLC-load-misses           #   46.83% of all LL-cache hits     (22.56%)
+    4,22,16,98,099      branches                  #  103.326 M/sec                    (22.65%)
+         59,63,719      branch-misses             #    0.14% of all branches          (22.72%)
+         60,23,942      faults                    #    0.147 M/sec
+                 1      migrations                #    0.000 K/sec
+                 0      alignment-faults          #    0.000 K/sec
+   81,87,86,27,031      uops_issued.stall_cycles  # 2003.979 M/sec                    (18.30%)
+   69,60,46,40,014      uops_executed.stall_cycles # 1703.573 M/sec                    (18.33%)
+   80,48,49,68,587      uops_retired.stall_cycles # 1969.869 M/sec                    (18.33%)
+    4,03,96,87,799      bus-cycles                #   98.871 M/sec                    (18.33%)
+   19,57,00,78,341      L1-dcache-loads           #  478.977 M/sec                    (18.33%)
+    1,55,07,12,282      L1-dcache-load-misses     #    7.92% of all L1-dcache hits    (18.32%)
+   12,89,01,92,517      L1-dcache-stores          #  315.487 M/sec                    (18.30%)
+       2,99,68,464      lsd.uops                  #    0.733 M/sec                    (18.28%)
+   87,31,26,26,100      uops_issued.any           # 2136.976 M/sec                    (18.24%)
+   19,60,29,05,876      dTLB-loads                #  479.781 M/sec                    (18.21%)
+       3,17,44,256      dTLB-load-misses          #    0.16% of all dTLB cache hits   (18.18%)
+   <not supported>      dTLB-prefetch-misses
+    4,03,76,88,163      bus-cycles                #   98.822 M/sec                    (18.15%)
+ 1,06,02,31,08,825      cpu-cycles                #    2.595 GHz                      (18.11%)
+   88,81,82,92,007      ref-cycles                # 2173.827 M/sec                    (22.62%)
+   84,85,53,58,969      cycles:u                  #    2.077 GHz                      (22.58%)
+   20,75,71,31,461      cycles:k                  #    0.508 GHz                      (22.55%)
+   71,86,54,11,627      instructions              #    0.68  insn per cycle           (27.05%)
+   71,76,30,43,595      inst_retired.any          # 1756.400 M/sec                    (27.02%)
+                97      context-switches          #    0.002 K/sec
+                 1      cpu-migrations            #    0.000 K/sec
+
+       5.726227258 seconds time elapsed
+```
 
  ## GCC compiler (`Makefile`)
  ```
