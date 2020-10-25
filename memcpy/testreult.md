@@ -84,7 +84,7 @@
  ---------------------------------
 ```
 
-## GCC compiler (`gcc -mavx2 main.c -pthread -lnuma -ggdb -Ofast -mnative`)
+## GCC compiler (`gcc -mavx2 main.c -pthread -lnuma -ggdb -Ofast -march=native`)
 ```
  ---- Summary in ticks -----
  Thread-000: v1 (7358510341), v2 (1828225444), v3 (2063143559), v4 (1934073190), v5 (        19), v6(1058639913), v7(1154869223), v9( 495382700)
