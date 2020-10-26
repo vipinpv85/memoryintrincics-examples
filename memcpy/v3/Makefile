@@ -24,7 +24,7 @@ CFLAGS += -mprefetchwt1
 #CFLAGS += -fPIC
 
 SRC = runlogic.c main.c
-CFLAGS += -std=gnu++1z -mavx2 -mfma -fabi-version=0 -I /home/saesrv02/Downloads/explore/version2-master/
+CFLAGS += -std=gnu++1z -mavx2 -mfma -fabi-version=0 -I [please include the path to AGNER VCL library]
 
 .PHONY: all
 
