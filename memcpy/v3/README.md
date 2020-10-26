@@ -11,7 +11,10 @@
  
  # dependancy
  1. libnuma
- 2. avx256
+ 2. avx2 CPU
  3. pthread
+ 4. AGNER vector class library
+ 
+ note: please update the path in Makefile to include.
  
  # RESULT
