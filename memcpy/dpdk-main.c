@@ -27,9 +27,13 @@ char *src;
 char *dst;
 static uint32_t numMemGb = 4; /* in GB*/
 static long long unsigned MemPerThread; /* in GB/therad */
+
+static uint16_t iterate = 10;
 static long long unsigned total[10];
-static double timediff[10];
-static long long unsigned tickCount[256][16] __attribute__ ((aligned (16)));
+
+static double timediff[256][10] __attribute__ ((aligned (64)));
+static long long unsigned tickCount[256][16] __attribute__ ((aligned (64)));
+
 static unsigned long int buffSize[13] = {1, 4, 8, 32, 64, 128, 1024, 8096, 65536, 1024 * 1024, 64 * 1024 * 1024, 512 * 1024 * 1024, 1024 * 1024 * 1024};
 
 static void __attribute__ ((noinline)) v1_CopyCompare(const int offsetIndex)
@@ -133,10 +137,12 @@ static void __attribute__ ((noinline)) v6_CopyCompare(const int offsetIndex)
 static int
 lcore_hello(__rte_unused void *arg)
 {
+        uint16_t curreIter = iterate;
+        
         unsigned lcore_id, lcore_index;
         unsigned long long start;
 
-struct timeval tv_begin, tv_end;
+        struct timeval tv_begin, tv_end;
 
         lcore_id = rte_lcore_id();
         lcore_index = rte_lcore_index(lcore_id);
@@ -148,24 +154,24 @@ struct timeval tv_begin, tv_end;
                 gettimeofday(&tv_begin, NULL);
                 v1_CopyCompare(lcore_index);
                 gettimeofday(&tv_end, NULL);
-                tickCount[lcore_index][0] = rte_get_timer_cycles() - start;
-                timediff[0] = (double)(tv_end.tv_sec - tv_begin.tv_sec) + ((double)tv_end.tv_usec - tv_begin.tv_usec)/1000000;
+                tickCount[lcore_index][0] += rte_get_timer_cycles() - start;
+                timediff[lcore_index][0] += (double)(tv_end.tv_sec - tv_begin.tv_sec) + ((double)tv_end.tv_usec - tv_begin.tv_usec)/1000000;
 
                 /* v2 */
                 start = rte_get_timer_cycles();
                 gettimeofday(&tv_begin, NULL);
                 v2_CopyCompare(lcore_index);
                 gettimeofday(&tv_end, NULL);
-                tickCount[lcore_index][1] = rte_get_timer_cycles() - start;
-                timediff[1] = (double)(tv_end.tv_sec - tv_begin.tv_sec) + ((double)tv_end.tv_usec - tv_begin.tv_usec)/1000000;
+                tickCount[lcore_index][1] += rte_get_timer_cycles() - start;
+                timediff[lcore_index][1] += (double)(tv_end.tv_sec - tv_begin.tv_sec) + ((double)tv_end.tv_usec - tv_begin.tv_usec)/1000000;
 
                 /* v3 */
                 start = rte_get_timer_cycles();
                 gettimeofday(&tv_begin, NULL);
                 v3_CopyCompare(lcore_index);
                 gettimeofday(&tv_end, NULL);
-                tickCount[lcore_index][2] = rte_get_timer_cycles() - start;
-                timediff[2] = (double)(tv_end.tv_sec - tv_begin.tv_sec) + ((double)tv_end.tv_usec - tv_begin.tv_usec)/1000000;
+                tickCount[lcore_index][2] += rte_get_timer_cycles() - start;
+                timediff[lcore_index][2] += (double)(tv_end.tv_sec - tv_begin.tv_sec) + ((double)tv_end.tv_usec - tv_begin.tv_usec)/1000000;
 
 
                 /* v4 */
@@ -173,43 +179,72 @@ struct timeval tv_begin, tv_end;
                 gettimeofday(&tv_begin, NULL);
                 v4_CopyCompare(lcore_index);
                 gettimeofday(&tv_end, NULL);
-                tickCount[lcore_index][3] = rte_get_timer_cycles() - start;
-                timediff[3] = (double)(tv_end.tv_sec - tv_begin.tv_sec) + ((double)tv_end.tv_usec - tv_begin.tv_usec)/1000000;
+                tickCount[lcore_index][3] += rte_get_timer_cycles() - start;
+                timediff[lcore_index][3] += (double)(tv_end.tv_sec - tv_begin.tv_sec) + ((double)tv_end.tv_usec - tv_begin.tv_usec)/1000000;
 
                 /* v5 */
                 start = rte_get_timer_cycles();
                 gettimeofday(&tv_begin, NULL);
                 v5_CopyCompare(lcore_index);
                 gettimeofday(&tv_end, NULL);
-                tickCount[lcore_index][4] = rte_get_timer_cycles() - start;
-                timediff[4] = (double)(tv_end.tv_sec - tv_begin.tv_sec) + ((double)tv_end.tv_usec - tv_begin.tv_usec)/1000000;
+                tickCount[lcore_index][4] += rte_get_timer_cycles() - start;
+                timediff[lcore_index][4] += (double)(tv_end.tv_sec - tv_begin.tv_sec) + ((double)tv_end.tv_usec - tv_begin.tv_usec)/1000000;
 
                 /* v6 */
                 start = rte_get_timer_cycles();
                 gettimeofday(&tv_begin, NULL);
                 v6_CopyCompare(lcore_index);
                 gettimeofday(&tv_end, NULL);
-                tickCount[lcore_index][5] = rte_get_timer_cycles() - start;
-                timediff[5] = (double)(tv_end.tv_sec - tv_begin.tv_sec) + ((double)tv_end.tv_usec - tv_begin.tv_usec)/1000000;
+                tickCount[lcore_index][5] += rte_get_timer_cycles() - start;
+                timediff[lcore_index][5] += (double)(tv_end.tv_sec - tv_begin.tv_sec) + ((double)tv_end.tv_usec - tv_begin.tv_usec)/1000000;
 
         } while(0);
 
+        tickCount[lcore_index][0] = tickCount[lcore_index][0] / iterate;
+        tickCount[lcore_index][1] = tickCount[lcore_index][1] / iterate;
+        tickCount[lcore_index][2] = tickCount[lcore_index][2] / iterate;
+        tickCount[lcore_index][3] = tickCount[lcore_index][3] / iterate;
+        tickCount[lcore_index][4] = tickCount[lcore_index][4] / iterate;
+        tickCount[lcore_index][5] = tickCount[lcore_index][5] / iterate;
+
+        timediff[lcore_index][0] = timediff[lcore_index][0] / iterate;
+        timediff[lcore_index][1] = timediff[lcore_index][1] / iterate;
+        timediff[lcore_index][2] = timediff[lcore_index][2] / iterate;
+        timediff[lcore_index][3] = timediff[lcore_index][3] / iterate;
+        timediff[lcore_index][4] = timediff[lcore_index][4] / iterate;
+        timediff[lcore_index][5] = timediff[lcore_index][5] / iterate;
+
+        
         return 0;
 }
 /* >8 End of launching function on lcore. */
 
 void display(void)
 {
+        int i = 0;
+        
+        long long unsigned total[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        long long unsigned time[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        
+        const numThreads = rte_lcore_count();
+        
         /* display stats */
         printf("\033[2J");
         printf("\033[1;1H ---- Summary in ticks -----");
-        int i = 0;
-        long long unsigned total[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        const numThreads = rte_lcore_count();
-
+        
+        
         for (; i < numThreads; i++) {
                 printf("\033[%d;1H Thread-%03d: v1 (%10llu), v2 (%10llu), v3 (%10llu), v4 (%10llu), v5 (%10llu), v6 (%10llu)",
                         i + 2, i, tickCount[i][0], tickCount[i][1], tickCount[i][2], tickCount[i][3], tickCount[i][4], tickCount[i][5]);
+                
+
+                time[0] += timediff[i][0];
+                time[1] += timediff[i][1];
+                time[2] += timediff[i][2];
+                time[3] += timediff[i][3];
+                time[4] += timediff[i][4];
+                time[5] += timediff[i][5];
+                
                 total[0] += tickCount[i][0];
                 total[1] += tickCount[i][1];
                 total[2] += tickCount[i][2];
@@ -225,11 +260,11 @@ void display(void)
         printf("\033[%d;1H speedup %%: %f, %f, %f, %f, %f, %f",
                 i + 5,
                 ((double)total[0] / (double)total[0]),
-                ((double)total[0] / (double)total[1]),
-                ((double)total[0] / (double)total[2]),
-                ((double)total[0] / (double)total[3]),
-                ((double)total[0] / (double)total[4]),
-                ((double)total[0] / (double)total[5])
+                (((double)total[0] - double)total[1])/ (double)total[1]),
+                (((double)total[0] - double)total[2])/ (double)total[2]),
+                (((double)total[0] - double)total[3])/ (double)total[3]),
+                (((double)total[0] - double)total[4])/ (double)total[4]),
+                (((double)total[0] - double)total[5])/ (double)total[5])
                 );
         printf("\033[%d;1H ---------------------------------", i + 6);
         printf("\n\n");
